@@ -1,0 +1,1278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Programming Rocket Quest</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ffff;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+            animation: gridMove 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+        }
+
+        .hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            padding: 8px 12px;
+            background: rgba(0, 20, 40, 0.85);
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+        }
+
+        /* ✅ FIX 1: question-display now auto-height, never truncated */
+        .question-display {
+            position: absolute;
+            top: 65px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 20, 40, 0.92);
+            border: 2px solid #00ffff;
+            border-radius: 12px;
+            padding: 12px 18px;
+            width: 92%;
+            max-width: 700px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.5;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            z-index: 5;
+            word-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
+        }
+
+        .timer {
+            position: absolute;
+            top: auto; /* will be set dynamically */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 20px;
+            font-weight: 900;
+            color: #ffff00;
+            text-shadow: 0 0 10px currentColor;
+            z-index: 5;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #ffff00;
+        }
+
+        .mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 20, 40, 0.85);
+            border-top: 2px solid #00ffff;
+            padding: 12px 10px;
+            z-index: 7;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 20, 40, 0.95);
+            border: 3px solid #00ffff;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            z-index: 20;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+            width: 90%;
+            max-width: 420px;
+        }
+
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.97);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .start-screen .instructions {
+            background: rgba(0, 20, 40, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            max-width: 500px;
+            width: 100%;
+            border: 2px solid #00ffff;
+        }
+
+        .hearts {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            width: 25px;
+            height: 25px;
+            position: relative;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            width: 12px;
+            height: 18px;
+            position: absolute;
+            background: #ff0040;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 0 8px rgba(255, 0, 64, 0.5);
+        }
+
+        .heart::before {
+            left: 12px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .heart::after {
+            left: 0;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .score-info {
+            text-align: right;
+        }
+
+        .score, .high-score {
+            font-size: 14px;
+            font-weight: 700;
+            text-shadow: 0 0 5px currentColor;
+            line-height: 1.3;
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 65px;
+            z-index: 4;
+            transition: left 0.1s ease;
+        }
+
+        .rocket svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px #00ffff);
+        }
+
+        .thruster {
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 20px;
+            background: linear-gradient(to top, #ff4500, #ffff00, #ff4500);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: thrusterFlame 0.1s ease-in-out infinite alternate;
+        }
+
+        @keyframes thrusterFlame {
+            0% { transform: translateX(-50%) scaleY(1); }
+            100% { transform: translateX(-50%) scaleY(1.3); }
+        }
+
+        /* ✅ FIX 2: Balloon text shows FULL answer, wraps properly */
+        .balloon {
+            position: absolute;
+            width: 110px;
+            height: 130px;
+            cursor: pointer;
+            z-index: 3;
+            animation: balloonFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes balloonFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .balloon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.5));
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .balloon-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%);
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+            width: 85px;
+            line-height: 1.3;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            z-index: 4;
+        }
+
+        .bullet {
+            position: absolute;
+            width: 5px;
+            height: 12px;
+            background: linear-gradient(to top, #00ffff, #ffffff);
+            border-radius: 2px;
+            box-shadow: 0 0 6px #00ffff;
+            z-index: 3;
+        }
+
+        .explosion {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .explosion.correct {
+            background: radial-gradient(circle, #00ff00, transparent);
+            animation: correctExplosion 0.5s ease-out forwards;
+        }
+
+        .explosion.wrong {
+            background: radial-gradient(circle, #ff0000, transparent);
+            animation: wrongExplosion 0.5s ease-out forwards;
+        }
+
+        @keyframes correctExplosion {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        @keyframes wrongExplosion {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .movement-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .move-btn {
+            width: 70px;
+            height: 60px;
+            background: rgba(0, 255, 255, 0.2);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            color: #00ffff;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .move-btn:active {
+            background: rgba(0, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+
+        .fire-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .fire-btn {
+            width: 120px;
+            height: 65px;
+            background: linear-gradient(45deg, #ff0000, #ff4500);
+            border: 3px solid #ff0000;
+            border-radius: 35px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+            font-family: 'Orbitron', monospace;
+        }
+
+        .fire-btn:active {
+            background: linear-gradient(45deg, #cc0000, #e63900);
+            transform: scale(0.95);
+        }
+
+        /* ✅ Home button style */
+        .home-btn {
+            width: 90px;
+            height: 65px;
+            background: linear-gradient(45deg, #333, #555);
+            border: 2px solid #aaa;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            user-select: none;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .home-btn:active {
+            transform: scale(0.95);
+        }
+
+        .home-btn .home-icon {
+            font-size: 20px;
+        }
+
+        .game-over h2 {
+            font-size: 26px;
+            margin-bottom: 15px;
+            color: #00ffff;
+            text-shadow: 0 0 15px currentColor;
+        }
+
+        .game-over p {
+            font-size: 15px;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border: none;
+            color: white;
+            padding: 14px 25px;
+            font-size: 16px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .restart-btn:active {
+            transform: scale(0.95);
+        }
+
+        .gameover-home-btn {
+            background: linear-gradient(45deg, #444, #666);
+            border: 2px solid #aaa;
+            color: white;
+            padding: 14px 25px;
+            font-size: 16px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .gameover-home-btn:active {
+            transform: scale(0.95);
+        }
+
+        .desktop-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            z-index: 5;
+            display: none;
+        }
+
+        .reward-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 15px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-align: center;
+            z-index: 15;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+            animation: rewardPulse 0.5s ease-in-out;
+            max-width: 90%;
+        }
+
+        @keyframes rewardPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .start-screen h1 {
+            font-size: 28px;
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px currentColor;
+        }
+
+        .start-screen .instructions h3 {
+            color: #ffff00;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .start-screen .instructions p {
+            margin-bottom: 10px;
+            color: #bdc3c7;
+            font-size: 13px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .start-btn {
+            padding: 16px 35px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            margin-top: 15px;
+            min-height: 58px;
+            width: 85%;
+            max-width: 300px;
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .start-btn:active { transform: scale(0.95); }
+
+        .start-home-btn {
+            padding: 14px 35px;
+            font-size: 16px;
+            background: linear-gradient(45deg, #444, #666);
+            color: white;
+            border: 2px solid #aaa;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            margin-top: 10px;
+            min-height: 54px;
+            width: 85%;
+            max-width: 300px;
+        }
+
+        .start-home-btn:active { transform: scale(0.95); }
+
+        /* TABLET */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .question-display { font-size: 16px; max-width: 80%; }
+            .balloon { width: 120px; height: 145px; }
+            .balloon-text { font-size: 11px; width: 95px; }
+            .rocket { width: 55px; height: 70px; bottom: 135px; }
+            .move-btn { width: 80px; height: 70px; font-size: 35px; }
+            .fire-btn { width: 140px; height: 75px; font-size: 18px; }
+        }
+
+        /* LANDSCAPE */
+        @media (orientation: landscape) and (max-height: 600px) {
+            .hud { top: 5px; left: 5px; right: 5px; padding: 5px 8px; }
+            .heart { width: 20px; height: 20px; }
+            .question-display { font-size: 12px; top: 55px; width: 88%; padding: 8px 12px; }
+            .timer { font-size: 15px; padding: 3px 10px; }
+            .balloon { width: 80px; height: 95px; }
+            .balloon-text { font-size: 8px; width: 65px; }
+            .rocket { width: 40px; height: 55px; bottom: 105px; }
+            .mobile-controls { padding: 8px; gap: 8px; }
+            .move-btn { width: 60px; height: 50px; font-size: 24px; }
+            .fire-btn { width: 100px; height: 55px; font-size: 14px; }
+            .home-btn { width: 75px; height: 55px; font-size: 10px; }
+        }
+
+        /* DESKTOP */
+        @media (min-width: 1025px) {
+            .mobile-controls { display: none; }
+            .desktop-controls { display: block; }
+            .rocket { bottom: 60px; width: 60px; height: 80px; }
+            .question-display { font-size: 18px; padding: 18px 28px; top: 80px; max-width: 750px; }
+            .timer { font-size: 22px; }
+            .balloon { width: 130px; height: 155px; }
+            .balloon-text { font-size: 12px; width: 105px; }
+        }
+
+        /* SMALL PHONES */
+        @media (max-width: 360px) {
+            .start-screen h1 { font-size: 22px; }
+            .question-display { font-size: 12px; padding: 9px 11px; }
+            .move-btn { width: 60px; height: 55px; font-size: 24px; }
+            .fire-btn { width: 105px; height: 60px; font-size: 14px; }
+            .home-btn { width: 78px; height: 60px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <!-- START SCREEN -->
+    <div class="start-screen" id="startScreen">
+        <h1>🚀 Programming Rocket Quest</h1>
+        <div class="instructions">
+            <h3>🎯 Mission Objective</h3>
+            <p>Shoot the correct programming answers to earn points!</p>
+            <p>• Read the programming question above</p>
+            <p>• Tap arrows to move your rocket</p>
+            <p>• Tap FIRE to shoot the correct answer balloon</p>
+            <p>• Avoid wrong answers or time runs out!</p>
+            <p>• Complete all questions to win!</p>
+        </div>
+        <button class="start-btn" id="startBtn">🚀 LAUNCH ROCKET</button>
+        <button class="start-home-btn" onclick="goHome()">🏠 HOME</button>
+    </div>
+    
+    <div class="game-container">
+        <!-- HUD -->
+        <div class="hud">
+            <div class="hearts" id="hearts"></div>
+            <div class="score-info">
+                <div class="score">Score: <span id="score">0</span></div>
+                <div class="high-score">Best: <span id="highScore">0</span></div>
+            </div>
+        </div>
+
+        <!-- ✅ question shown in full, no truncation -->
+        <div class="question-display" id="questionDisplay"></div>
+        <div class="timer" id="timer" style="top: 180px;">60</div>
+
+        <!-- ROCKET -->
+        <div class="rocket" id="rocket">
+            <svg viewBox="0 0 60 80">
+                <defs>
+                    <linearGradient id="rocketGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#00ffff"/>
+                        <stop offset="50%" style="stop-color:#0080ff"/>
+                        <stop offset="100%" style="stop-color:#004080"/>
+                    </linearGradient>
+                </defs>
+                <path d="M30 5 L45 25 L40 70 L20 70 L15 25 Z" fill="url(#rocketGradient)" stroke="#00ffff" stroke-width="2"/>
+                <circle cx="30" cy="20" r="8" fill="#ffff00" opacity="0.8"/>
+                <rect x="25" y="35" width="10" height="20" fill="#00ffff" opacity="0.6"/>
+            </svg>
+            <div class="thruster"></div>
+        </div>
+
+        <!-- MOBILE TOUCH CONTROLS -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="movement-controls">
+                <button class="move-btn" id="leftBtn">←</button>
+                <button class="move-btn" id="rightBtn">→</button>
+            </div>
+            <div class="fire-controls">
+                <button class="fire-btn" id="fireBtn">FIRE 🔥</button>
+                <!-- ✅ Home button in controls -->
+                <button class="home-btn" onclick="goHome()">
+                    <span class="home-icon">🏠</span>
+                    <span>HOME</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- DESKTOP CONTROLS INFO -->
+        <div class="desktop-controls">
+            ← → Arrow Keys to Move &nbsp;|&nbsp; SPACEBAR to Fire &nbsp;|&nbsp;
+            <span style="cursor:pointer; color:#aaa; text-decoration:underline;" onclick="goHome()">🏠 Home</span>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            currentQuestionIndex: 0,
+            score: 0,
+            hearts: 3,
+            timeLeft: 60,
+            gameActive: true,
+            rocketPosition: 50,
+            bullets: [],
+            balloons: [],
+            timer: null,
+            questionTimer: null,
+            rewardActive: false,
+            isMobileDevice: false,
+            moveInterval: null,
+            processingAnswer: false   // ✅ prevent double-fire
+        };
+
+        const questions = [
+            {
+                question: "What is the definition for list in Python?",
+                answers: [
+                    "A loop structure used to repeat instructions",
+                    "A variable that stores only one value at a time",
+                    "A function used to organize code into blocks",
+                    "A collection of items stored in a single variable"
+                ],
+                correct: 3
+            },
+            {
+                question: "What is the definition for list index in Python?",
+                answers: [
+                    "A position of an element in a list",
+                    "The value of an element in a list",
+                    "The total number of elements in a list",
+                    "A method used to sort a list"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the characteristics of list in Python?",
+                answers: [
+                    "Unordered, immutable, does not allow duplicates, fixed size",
+                    "Ordered, mutable/changeable, allow duplicate, supports different data types and dynamic size",
+                    "Ordered, immutable, supports only one data type",
+                    "Fixed size, does not allow changes, only stores numbers"
+                ],
+                correct: 1
+            },
+            {
+                question: "Which slicing reverses a list in Python?",
+                answers: [
+                    "[ : : -1 ]",
+                    "[ : : 1 ]",
+                    "[ -1 : ]",
+                    "[ 1 : : ]"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which slicing creates a shallow copy of a list?",
+                answers: [
+                    "[ : 1 ]",
+                    "[ 0 ]",
+                    "[ : ]",
+                    "[ 1 : ]"
+                ],
+                correct: 2
+            },
+            {
+                question: "Which slicing accesses every other element?",
+                answers: [
+                    "[ : : -2 ]",
+                    "[ : : 1 ]",
+                    "[ : 2 ]",
+                    "[ : : 2 ]"
+                ],
+                correct: 3
+            },
+            {
+                question: "What does len() function do in Python?",
+                answers: [
+                    "Returns the sum of all elements",
+                    "Returns the number of elements in a list / dictionary / strings / tuples",
+                    "Returns the largest value",
+                    "Returns the data type"
+                ],
+                correct: 1
+            },
+            {
+                question: "What is the difference between function and method?",
+                answers: [
+                    "Functions cannot return values",
+                    "Functions only work with numbers",
+                    "Functions must be inside class",
+                    "Functions are standalone, methods belong to objects/classes"
+                ],
+                correct: 3
+            },
+            {
+                question: "Which replaces multiple elements in a list?",
+                answers: [
+                    "fruit.add(1:3, \"blackcurrent\")",
+                    "fruit = \"blackcurrent\", \"watermelon\"",
+                    "fruit[1,3] = \"blackcurrent\"",
+                    "fruit[1:3] = [\"blackcurrent\", \"watermelon\"]"
+                ],
+                correct: 3
+            },
+            {
+                question: "Which is list concatenation?",
+                answers: [
+                    "[1,2] + [3,4] = [1,2,3,4]",
+                    "[1,2] * [3,4] = [3,8]",
+                    "[1,2] - [3,4]",
+                    "[1,2] / [3,4]"
+                ],
+                correct: 0
+            }
+        ];
+
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        function checkMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   ('ontouchstart' in window) || 
+                   (navigator.maxTouchPoints > 0);
+        }
+
+        let audioContext;
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {}
+
+        function playSound(frequency, duration, type = 'sine') {
+            if (!audioContext || audioContext.state === 'suspended') return;
+            try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+                oscillator.type = type;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function initGame() {
+            gameState.isMobileDevice = checkMobileDevice();
+            document.getElementById('startScreen').style.display = 'none';
+
+            gameState.currentQuestionIndex = 0;
+            gameState.score = 0;
+            gameState.hearts = 3;
+            gameState.gameActive = true;
+            gameState.rewardActive = false;
+            gameState.rocketPosition = 50;
+            gameState.processingAnswer = false;
+
+            updateHUD();
+            loadHighScore();
+            setupEventListeners();
+            positionTimerBelowQuestion();
+            showQuestion();
+            startGameLoop();
+        }
+
+        // ✅ Position timer just below the question box dynamically
+        function positionTimerBelowQuestion() {
+            setTimeout(() => {
+                const qBox = document.getElementById('questionDisplay');
+                const timer = document.getElementById('timer');
+                if (qBox && timer) {
+                    const rect = qBox.getBoundingClientRect();
+                    timer.style.top = (rect.bottom + 8) + 'px';
+                }
+            }, 100);
+        }
+
+        function setupEventListeners() {
+            if (gameState.isMobileDevice) {
+                const leftBtn = document.getElementById('leftBtn');
+                const rightBtn = document.getElementById('rightBtn');
+                const fireBtn = document.getElementById('fireBtn');
+
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('left'); });
+                leftBtn.addEventListener('touchend', stopMoving);
+                leftBtn.addEventListener('touchcancel', stopMoving);
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startMoving('right'); });
+                rightBtn.addEventListener('touchend', stopMoving);
+                rightBtn.addEventListener('touchcancel', stopMoving);
+                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); fireBullet(); });
+
+                // Also support click for simulator testing
+                leftBtn.addEventListener('mousedown', () => startMoving('left'));
+                leftBtn.addEventListener('mouseup', stopMoving);
+                rightBtn.addEventListener('mousedown', () => startMoving('right'));
+                rightBtn.addEventListener('mouseup', stopMoving);
+                fireBtn.addEventListener('click', fireBullet);
+            } else {
+                document.addEventListener('keydown', handleKeyPress);
+
+                // Also show mobile controls as clickable on desktop for flexibility
+                const leftBtn = document.getElementById('leftBtn');
+                const rightBtn = document.getElementById('rightBtn');
+                const fireBtn = document.getElementById('fireBtn');
+                if (leftBtn) {
+                    leftBtn.addEventListener('mousedown', () => startMoving('left'));
+                    leftBtn.addEventListener('mouseup', stopMoving);
+                }
+                if (rightBtn) {
+                    rightBtn.addEventListener('mousedown', () => startMoving('right'));
+                    rightBtn.addEventListener('mouseup', stopMoving);
+                }
+                if (fireBtn) {
+                    fireBtn.addEventListener('click', fireBullet);
+                }
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (!gameState.gameActive) return;
+            switch(e.code) {
+                case 'ArrowLeft': e.preventDefault(); moveRocket('left'); break;
+                case 'ArrowRight': e.preventDefault(); moveRocket('right'); break;
+                case 'Space': e.preventDefault(); fireBullet(); break;
+            }
+        }
+
+        function startMoving(direction) {
+            if (!gameState.gameActive || gameState.moveInterval) return;
+            gameState.moveInterval = setInterval(() => moveRocket(direction), 16);
+        }
+
+        function stopMoving() {
+            if (gameState.moveInterval) {
+                clearInterval(gameState.moveInterval);
+                gameState.moveInterval = null;
+            }
+        }
+
+        function moveRocket(direction) {
+            if (!gameState.gameActive) return;
+            const moveAmount = gameState.isMobileDevice ? 3 : 4;
+            if (direction === 'left' && gameState.rocketPosition > 5) {
+                gameState.rocketPosition -= moveAmount;
+            } else if (direction === 'right' && gameState.rocketPosition < 95) {
+                gameState.rocketPosition += moveAmount;
+            }
+            document.getElementById('rocket').style.left = gameState.rocketPosition + '%';
+        }
+
+        function updateHUD() {
+            const heartsContainer = document.getElementById('hearts');
+            heartsContainer.innerHTML = '';
+            for (let i = 0; i < gameState.hearts; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heartsContainer.appendChild(heart);
+            }
+            document.getElementById('score').textContent = gameState.score;
+        }
+
+        function loadHighScore() {
+            const highScore = localStorage.getItem('rocketQuestHighScore') || 0;
+            document.getElementById('highScore').textContent = highScore;
+        }
+
+        function saveHighScore() {
+            const currentHigh = parseInt(localStorage.getItem('rocketQuestHighScore') || 0);
+            if (gameState.score > currentHigh) {
+                localStorage.setItem('rocketQuestHighScore', gameState.score);
+                document.getElementById('highScore').textContent = gameState.score;
+            }
+        }
+
+        function showQuestion() {
+            if (gameState.currentQuestionIndex >= questions.length) {
+                endGame(true);
+                return;
+            }
+
+            clearBalloons();
+            clearBullets();
+            gameState.processingAnswer = false;
+
+            const currentQ = questions[gameState.currentQuestionIndex];
+            document.getElementById('questionDisplay').textContent = currentQ.question;
+
+            // Reposition timer after question text renders
+            positionTimerBelowQuestion();
+
+            gameState.timeLeft = 60;
+            startQuestionTimer();
+
+            setTimeout(() => createBalloons(currentQ), 500);
+        }
+
+        function createBalloons(question) {
+            const positions = [8, 30, 54, 75];
+
+            question.answers.forEach((answer, index) => {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.left = positions[index] + '%';
+                balloon.style.top = '230px';
+                balloon.dataset.answerIndex = index;
+                balloon.dataset.isCorrect = (index === question.correct) ? 'true' : 'false';
+
+                // ✅ Full answer text, NO truncation
+                balloon.innerHTML = `
+                    <svg viewBox="0 0 120 140">
+                        <defs>
+                            <linearGradient id="balloonGrad${index}" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:rgba(0,255,255,0.85)"/>
+                                <stop offset="100%" style="stop-color:rgba(0,100,220,0.7)"/>
+                            </linearGradient>
+                        </defs>
+                        <ellipse cx="60" cy="60" rx="52" ry="62" fill="url(#balloonGrad${index})" stroke="#00ffff" stroke-width="2"/>
+                        <line x1="60" y1="122" x2="60" y2="138" stroke="#00ffff" stroke-width="2"/>
+                    </svg>
+                    <div class="balloon-text">${answer}</div>
+                `;
+
+                document.querySelector('.game-container').appendChild(balloon);
+                gameState.balloons.push(balloon);
+            });
+        }
+
+        function clearBalloons() {
+            gameState.balloons.forEach(b => b.parentNode && b.parentNode.removeChild(b));
+            gameState.balloons = [];
+        }
+
+        function clearBullets() {
+            gameState.bullets.forEach(b => b.parentNode && b.parentNode.removeChild(b));
+            gameState.bullets = [];
+        }
+
+        function startQuestionTimer() {
+            if (gameState.questionTimer) clearInterval(gameState.questionTimer);
+            gameState.questionTimer = setInterval(() => {
+                if (!gameState.processingAnswer) {
+                    gameState.timeLeft--;
+                    document.getElementById('timer').textContent = gameState.timeLeft;
+                    if (gameState.timeLeft <= 0) {
+                        clearInterval(gameState.questionTimer);
+                        handleWrongAnswer();
+                    }
+                }
+            }, 1000);
+        }
+
+        // ✅ FIX 3: use currentQuestionIndex to check correct answer (not random)
+        function handleCorrectAnswer(balloon) {
+            if (gameState.processingAnswer) return;
+            gameState.processingAnswer = true;
+            clearInterval(gameState.questionTimer);
+
+            createExplosion(balloon, 'correct');
+            playSound(800, 0.3);
+
+            const basePoints = 10;
+            const timeBonus = Math.floor(gameState.timeLeft / 10);
+            const totalPoints = basePoints + timeBonus;
+            gameState.score += totalPoints;
+
+            if (gameState.timeLeft > 50) {
+                gameState.score += 10;
+                showReward("⚡ First Try Bonus! +10");
+            }
+
+            updateHUD();
+            gameState.currentQuestionIndex++;
+
+            setTimeout(() => {
+                if (gameState.currentQuestionIndex >= questions.length) {
+                    endGame(true);
+                } else {
+                    showQuestion();
+                }
+            }, 1500);
+        }
+
+        function handleWrongAnswer() {
+            if (gameState.processingAnswer) return;
+            gameState.processingAnswer = true;
+            clearInterval(gameState.questionTimer);
+
+            playSound(200, 0.5, 'sawtooth');
+            gameState.hearts--;
+            updateHUD();
+
+            if (gameState.hearts <= 0) {
+                setTimeout(() => endGame(false), 500);
+            } else {
+                setTimeout(() => showQuestion(), 1500);
+            }
+        }
+
+        function createExplosion(element, type) {
+            const explosion = document.createElement('div');
+            explosion.className = `explosion ${type}`;
+            const rect = element.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            explosion.style.left = (rect.left - containerRect.left + rect.width/2 - 35) + 'px';
+            explosion.style.top = (rect.top - containerRect.top + rect.height/2 - 35) + 'px';
+            document.querySelector('.game-container').appendChild(explosion);
+            setTimeout(() => explosion.parentNode && explosion.parentNode.removeChild(explosion), 500);
+        }
+
+        function showReward(message) {
+            const popup = document.createElement('div');
+            popup.className = 'reward-popup';
+            popup.textContent = message;
+            document.querySelector('.game-container').appendChild(popup);
+            setTimeout(() => popup.parentNode && popup.parentNode.removeChild(popup), 1500);
+        }
+
+        function fireBullet() {
+            if (!gameState.gameActive) return;
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            const rocket = document.getElementById('rocket');
+            const rocketRect = rocket.getBoundingClientRect();
+            const containerRect = document.querySelector('.game-container').getBoundingClientRect();
+            bullet.style.left = (rocketRect.left - containerRect.left + rocketRect.width/2 - 2.5) + 'px';
+            bullet.style.bottom = (window.innerHeight - rocketRect.top - containerRect.top + 10) + 'px';
+            document.querySelector('.game-container').appendChild(bullet);
+            gameState.bullets.push(bullet);
+            playSound(1000, 0.1);
+        }
+
+        function updateBullets() {
+            const bulletsToRemove = [];
+            gameState.bullets.forEach((bullet, bulletIndex) => {
+                if (!bullet.parentNode) { bulletsToRemove.push(bulletIndex); return; }
+
+                const currentBottom = parseInt(bullet.style.bottom);
+                const newBottom = currentBottom + 10;
+
+                if (newBottom > window.innerHeight) {
+                    bullet.parentNode.removeChild(bullet);
+                    bulletsToRemove.push(bulletIndex);
+                    return;
+                }
+
+                bullet.style.bottom = newBottom + 'px';
+
+                // Check collision with balloons
+                for (let bi = gameState.balloons.length - 1; bi >= 0; bi--) {
+                    const balloon = gameState.balloons[bi];
+                    if (!balloon.parentNode) continue;
+
+                    if (checkCollision(bullet, balloon)) {
+                        bullet.parentNode && bullet.parentNode.removeChild(bullet);
+                        bulletsToRemove.push(bulletIndex);
+
+                        // ✅ Use data-is-correct attribute (set at balloon creation time)
+                        const isCorrect = balloon.dataset.isCorrect === 'true';
+
+                        if (isCorrect) {
+                            handleCorrectAnswer(balloon);
+                        } else {
+                            createExplosion(balloon, 'wrong');
+                            balloon.parentNode && balloon.parentNode.removeChild(balloon);
+                            gameState.balloons.splice(bi, 1);
+                            handleWrongAnswer();
+                        }
+                        break;
+                    }
+                }
+            });
+
+            // Remove processed bullets in reverse order
+            for (let i = bulletsToRemove.length - 1; i >= 0; i--) {
+                gameState.bullets.splice(bulletsToRemove[i], 1);
+            }
+        }
+
+        function checkCollision(bullet, balloon) {
+            const bulletRect = bullet.getBoundingClientRect();
+            const balloonRect = balloon.getBoundingClientRect();
+            return bulletRect.left < balloonRect.right &&
+                   bulletRect.right > balloonRect.left &&
+                   bulletRect.top < balloonRect.bottom &&
+                   bulletRect.bottom > balloonRect.top;
+        }
+
+        function startGameLoop() {
+            function gameLoop() {
+                if (gameState.gameActive) {
+                    updateBullets();
+                    requestAnimationFrame(gameLoop);
+                }
+            }
+            gameLoop();
+        }
+
+        function endGame(isWin) {
+            gameState.gameActive = false;
+            clearInterval(gameState.questionTimer);
+            clearBalloons();
+            clearBullets();
+            stopMoving();
+            saveHighScore();
+
+            const gameOver = document.createElement('div');
+            gameOver.className = 'game-over';
+
+            const title = isWin ? '🚀 Mission Complete!' : '💥 Mission Failed';
+            const message = isWin ?
+                'You successfully answered all questions!' :
+                'Better luck next time! Keep studying.';
+
+            gameOver.innerHTML = `
+                <h2>${title}</h2>
+                <p style="margin-bottom:5px;">${message}</p>
+                <p>Final Score: <strong>${gameState.score}</strong></p>
+                <p>Questions: ${gameState.currentQuestionIndex}/${questions.length}</p>
+                <p>High Score: ${document.getElementById('highScore').textContent}</p>
+                <button class="restart-btn" id="gameRestartBtn">🚀 New Mission</button>
+                <button class="gameover-home-btn" onclick="goHome()">🏠 HOME</button>
+            `;
+
+            document.querySelector('.game-container').appendChild(gameOver);
+
+            setTimeout(() => {
+                const btn = document.getElementById('gameRestartBtn');
+                if (btn) btn.addEventListener('click', restartGame);
+            }, 100);
+
+            if (isWin) {
+                const rocket = document.getElementById('rocket');
+                rocket.style.transition = 'bottom 3s ease-in, transform 3s ease-in';
+                rocket.style.bottom = '100vh';
+                rocket.style.transform = 'translateX(-50%) scale(0.5)';
+            }
+        }
+
+        function restartGame() {
+            const gameOver = document.querySelector('.game-over');
+            if (gameOver && gameOver.parentNode) gameOver.parentNode.removeChild(gameOver);
+
+            const rocket = document.getElementById('rocket');
+            rocket.style.transition = '';
+            rocket.style.bottom = gameState.isMobileDevice ? '120px' : '60px';
+            rocket.style.transform = 'translateX(-50%)';
+            rocket.style.left = '50%';
+
+            gameState = {
+                currentQuestionIndex: 0,
+                score: 0,
+                hearts: 3,
+                timeLeft: 60,
+                gameActive: true,
+                rocketPosition: 50,
+                bullets: [],
+                balloons: [],
+                timer: null,
+                questionTimer: null,
+                rewardActive: false,
+                isMobileDevice: gameState.isMobileDevice,
+                moveInterval: null,
+                processingAnswer: false
+            };
+
+            initGame();
+        }
+
+        window.addEventListener('load', () => {
+            document.getElementById('startBtn').addEventListener('click', initGame);
+            document.addEventListener('click', () => {
+                if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+            }, { once: true });
+            document.getElementById('startScreen').style.display = 'flex';
+        });
+
+        window.addEventListener('resize', () => {
+            const rocket = document.getElementById('rocket');
+            if (rocket) rocket.style.left = gameState.rocketPosition + '%';
+            if (gameState.gameActive) positionTimerBelowQuestion();
+        });
+
+        window.goHome = goHome;
+    </script>
+</body>
+</html>

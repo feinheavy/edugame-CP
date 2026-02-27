@@ -1,0 +1,1144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programming Monopoly - Learn While You Play!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            padding: 25px;
+            width: 100%;
+            max-width: 1300px;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .timer, .round-counter {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        /* ✅ HOME BUTTON in header */
+        .home-btn {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .board-container {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        /* ✅ BOARD: fills available space, responsive */
+        .board-wrapper {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .board {
+            width: 100%;
+            max-width: 680px;
+            aspect-ratio: 1 / 1;
+            border: 6px solid #2c3e50;
+            border-radius: 12px;
+            position: relative;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+        }
+
+        .space {
+            border: 1.5px solid #34495e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4px;
+            font-size: clamp(0.55rem, 1.2vw, 0.78rem);
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .space:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .space .space-name {
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .space .space-price {
+            font-size: clamp(0.5rem, 1vw, 0.7rem);
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        .corner {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .property {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .chance {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .special {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .center-cell {
+            border: none !important;
+            background: transparent !important;
+        }
+
+        .center-logo {
+            grid-column: 2 / 6;
+            grid-row: 2 / 6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: radial-gradient(circle, #f0f4ff, #dce6ff);
+            border-radius: 8px;
+            font-size: clamp(0.8rem, 2vw, 1.2rem);
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+            line-height: 1.5;
+            padding: 10px;
+        }
+
+        .token {
+            position: absolute;
+            width: clamp(18px, 3vw, 28px);
+            height: clamp(18px, 3vw, 28px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(0.6rem, 1.2vw, 0.9rem);
+            font-weight: bold;
+            color: white;
+            z-index: 100;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            border: 2px solid white;
+        }
+
+        .token.moving {
+            animation: bounce 0.5s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* RIGHT SIDE PANEL */
+        .game-controls {
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .players-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .players-panel h3, .leaderboard h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin: 4px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .player-info.active {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .dice-container {
+            text-align: center;
+            margin: 15px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dice-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .dice {
+            width: 55px;
+            height: 55px;
+            background: white;
+            border: 3px solid #2c3e50;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dice:hover { transform: scale(1.1); }
+
+        .dice.rolling {
+            animation: roll 1s ease-in-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(720deg); }
+        }
+
+        .roll-button {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .roll-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .roll-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .leaderboard {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(45deg, #6c5ce7, #5f3dc4);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* ✅ Bottom home button in sidebar */
+        .sidebar-home-btn {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .sidebar-home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* MODALS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content h3 {
+            font-size: 1.3rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .question {
+            font-size: 1.05rem;
+            margin-bottom: 18px;
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+
+        .answer-btn {
+            display: block;
+            width: 100%;
+            padding: 13px 15px;
+            margin: 8px 0;
+            border: 2px solid #3498db;
+            background: white;
+            color: #2c3e50;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+
+        .money-animation {
+            position: absolute;
+            font-size: 1.3rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 200;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+
+        .combo-glow {
+            animation: glow 1s ease-in-out;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(46, 204, 113, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(46, 204, 113, 1), 0 0 30px rgba(46, 204, 113, 0.8); }
+        }
+
+        .card {
+            background: linear-gradient(45deg, #fd79a8, #e84393);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.6s ease;
+            transform-style: preserve-3d;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .card.flipped {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .board-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .board-wrapper {
+                width: 100%;
+            }
+
+            .board {
+                max-width: 100%;
+            }
+
+            .game-controls {
+                width: 100%;
+                max-width: 680px;
+            }
+
+            .dice-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-title { font-size: 1.6rem; }
+            .game-container { padding: 15px; }
+            .modal-content { padding: 20px 15px; }
+            .question { font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="game-title">🎲 Programming Monopoly 📊</h1>
+            <div class="game-info">
+                <div class="timer">⏰ Time: <span id="timer">30:00</span></div>
+                <div class="round-counter">🎯 Round: <span id="round">1</span>/10</div>
+                <!-- ✅ Home button in header -->
+                <button class="home-btn" onclick="goHome()">🏠 HOME</button>
+            </div>
+        </div>
+
+        <div class="board-container">
+            <!-- ✅ Board in a flex wrapper so it scales -->
+            <div class="board-wrapper">
+                <div class="board" id="board"></div>
+            </div>
+
+            <div class="game-controls">
+                <div class="players-panel">
+                    <h3>👥 Players</h3>
+                    <div id="players-list"></div>
+                </div>
+
+                <div class="dice-container">
+                    <div class="dice-row">
+                        <div class="dice" id="dice1">🎲</div>
+                        <div class="dice" id="dice2">🎲</div>
+                    </div>
+                    <button class="roll-button" id="rollBtn">🎲 Roll Dice</button>
+                </div>
+
+                <div class="leaderboard">
+                    <h3>🏆 Leaderboard</h3>
+                    <div id="leaderboard-list"></div>
+                </div>
+
+                <button class="restart-btn" onclick="restartGame()">🔄 New Game</button>
+                <!-- ✅ Home button in sidebar -->
+                <button class="sidebar-home-btn" onclick="goHome()">🏠 Back to Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div class="modal" id="questionModal">
+        <div class="modal-content">
+            <h3>📚 Programming Challenge!</h3>
+            <div class="question" id="questionText"></div>
+            <div id="answersContainer"></div>
+        </div>
+    </div>
+
+    <!-- Event Card Modal -->
+    <div class="modal" id="cardModal">
+        <div class="modal-content">
+            <h3>🎴 Chance Card</h3>
+            <div class="card" id="eventCard" onclick="flipCard()">
+                <div>🎴 Click to flip card!</div>
+            </div>
+            <button class="roll-button" id="cardOkBtn" style="display:none; margin-top:15px;" onclick="closeCardModal()">✅ Continue</button>
+        </div>
+    </div>
+
+    <script>
+        function goHome() {
+            window.location.href = 'index.html';
+        }
+
+        let gameState = {
+            players: [
+                { id: 1, name: 'Player 1', money: 1500, position: 0, combo: 0, color: '#e74c3c' },
+                { id: 2, name: 'Player 2', money: 1500, position: 0, combo: 0, color: '#3498db' },
+                { id: 3, name: 'Player 3', money: 1500, position: 0, combo: 0, color: '#2ecc71' },
+                { id: 4, name: 'Player 4', money: 1500, position: 0, combo: 0, color: '#f39c12' }
+            ],
+            currentPlayer: 0,
+            round: 1,
+            maxRounds: 10,
+            timeLeft: 1800,
+            gameActive: true
+        };
+
+        const boardSpaces = [
+            { name: 'START', type: 'corner', reward: 200 },
+            { name: 'Python Street', type: 'property', price: 100 },
+            { name: 'Hint', type: 'chance' },
+            { name: 'Java Avenue', type: 'property', price: 120 },
+            { name: 'C++ Plaza', type: 'property', price: 140 },
+            { name: 'Debug Zone', type: 'corner' },
+            { name: 'Loop Lane', type: 'property', price: 160 },
+            { name: 'Function Blvd', type: 'property', price: 180 },
+            { name: 'Hint', type: 'chance' },
+            { name: 'Array Junction', type: 'property', price: 200 },
+            { name: 'Code Corner', type: 'corner' },
+            { name: 'Object St', type: 'property', price: 220 },
+            { name: 'Class Avenue', type: 'property', price: 240 },
+            { name: 'Hint', type: 'chance' },
+            { name: 'Variable Blvd', type: 'property', price: 260 },
+            { name: 'Compile Zone', type: 'corner' },
+            { name: 'Algorithm Mall', type: 'property', price: 280 },
+            { name: 'Hint', type: 'chance' },
+            { name: 'Binary Road', type: 'property', price: 300 },
+            { name: 'AI Lab', type: 'special', price: 350 }
+        ];
+
+        const questions = [
+            {
+                question: "What is the definition for tuple in Python?",
+                answers: [
+                    "A loop structure used to iterate over elements",
+                    "A collection of values that can be changed after creation",
+                    "A function used to group multiple variables together",
+                    "A sequence of comma separated values that contain elements of different types"
+                ],
+                correct: 3
+            },
+            {
+                question: "What is the advantages for tuple in Python?",
+                answers: [
+                    "Faster than lists, useful for fixed collections, can be used as dictionary keys",
+                    "Allows adding and removing elements at any time",
+                    "Supports more methods than lists",
+                    "Can only store one data type at a time"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the characteristics of tuple in Python?",
+                answers: [
+                    "Ordered, mutable, supports only integers",
+                    "Unordered, mutable, does not allow duplicates",
+                    "Ordered, immutable, allow duplicate, supports multiple data types and indexable",
+                    "Fixed size, cannot be accessed by index"
+                ],
+                correct: 2
+            },
+            {
+                question: "Why tuples are memory efficient and faster than list in Python?",
+                answers: [
+                    "Because tuples are immutable, Python optimizes their storage and access speed",
+                    "Because tuples can store more elements than lists",
+                    "Because tuples automatically sort their elements",
+                    "Because tuples do not use memory for storage"
+                ],
+                correct: 0
+            },
+            {
+                question: "What is the definition of set in Python?",
+                answers: [
+                    "A collection of ordered elements that allow duplicates",
+                    "A collection of elements or objects of unique values enclosed in a pair of curly brackets",
+                    "A structure that stores key-value pairs",
+                    "A sequence of elements stored in square brackets"
+                ],
+                correct: 1
+            },
+            {
+                question: "Why do we want to use set in Python?",
+                answers: [
+                    "To store elements in a fixed order",
+                    "To store unique elements efficiently",
+                    "To allow duplicate values in a collection",
+                    "To store data with indexes like lists"
+                ],
+                correct: 1
+            },
+            {
+                question: "What kind of data types cannot be used in a set in Python?",
+                answers: [
+                    "Strings and tuples",
+                    "Integers and floats",
+                    "Lists / Dictionaries",
+                    "Boolean values"
+                ],
+                correct: 2
+            },
+            {
+                question: "What is the characteristics of sets in Python?",
+                answers: [
+                    "Supports only numbers and cannot be changed",
+                    "Ordered, immutable, supports indexing",
+                    "Allows duplicate values and fixed size",
+                    "Unordered, mutable, no indexing/slicing, supports mathematical set operations and can store different data types"
+                ],
+                correct: 3
+            },
+            {
+                question: "What is purpose of use dictionaries in Python?",
+                answers: [
+                    "Need fast lookups, to store associative data and need a flexible and mutable data structure for data manipulation",
+                    "To store values in a fixed order with indexing",
+                    "To prevent modification of stored data",
+                    "To store only numerical data for calculations"
+                ],
+                correct: 0
+            },
+            {
+                question: "Which of the following is the example of getting all keys and values of dictionary in Python?",
+                answers: [
+                    "dictionary_name.keys_values()",
+                    "dictionary_name.items()",
+                    "dictionary_name.get_all()",
+                    "dictionary_name.values_keys()"
+                ],
+                correct: 1
+            }
+        ];
+
+        const eventCards = [
+            { text: "💡 Hint: Tuple is immutable!", effect: 50 },
+            { text: "💡 Hint: Set stores unique values!", effect: 50 },
+            { text: "💡 Hint: Dictionary uses key-value pairs!", effect: 50 },
+            { text: "⚠️ Bug found! Lose points fixing it!", effect: -80 },
+            { text: "🚀 Code optimized! Gain bonus!", effect: 150 },
+            { text: "💻 Debug success! Earn reward!", effect: 100 }
+        ];
+
+        // Board perimeter positions: [row, col] (0-indexed on a 6x6 grid)
+        const perimeterPositions = [
+            [0,0],[0,1],[0,2],[0,3],[0,4],[0,5],
+            [1,5],[2,5],[3,5],[4,5],
+            [5,5],[5,4],[5,3],[5,2],[5,1],[5,0],
+            [4,0],[3,0],[2,0],[1,0]
+        ];
+
+        let audioContext;
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                switch(type) {
+                    case 'dice':
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                        oscillator.start(); oscillator.stop(audioContext.currentTime + 0.1);
+                        break;
+                    case 'correct':
+                        oscillator.frequency.setValueAtTime(523, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(784, audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        oscillator.start(); oscillator.stop(audioContext.currentTime + 0.3);
+                        break;
+                    case 'wrong':
+                        oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                        oscillator.start(); oscillator.stop(audioContext.currentTime + 0.5);
+                        break;
+                    case 'money':
+                        oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                        oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.2);
+                        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        oscillator.start(); oscillator.stop(audioContext.currentTime + 0.2);
+                        break;
+                }
+            } catch(e) {}
+        }
+
+        function initGame() {
+            createBoard();
+            createPlayerTokens();
+            updatePlayersDisplay();
+            updateLeaderboard();
+            startTimer();
+        }
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            // Build a 6x6 map of which cells are perimeter (and which board space index)
+            const perimeterMap = {};
+            perimeterPositions.forEach(([r, c], idx) => {
+                perimeterMap[`${r},${c}`] = idx;
+            });
+
+            for (let r = 0; r < 6; r++) {
+                for (let c = 0; c < 6; c++) {
+                    const key = `${r},${c}`;
+                    const spaceIdx = perimeterMap[key];
+                    const isPerimeter = spaceIdx !== undefined;
+                    const isInner = !isPerimeter && !(r === 0 || r === 5 || c === 0 || c === 5);
+
+                    if (isPerimeter) {
+                        const spaceData = boardSpaces[spaceIdx];
+                        const cell = document.createElement('div');
+                        cell.className = `space ${spaceData.type}`;
+                        cell.dataset.spaceIndex = spaceIdx;
+                        cell.innerHTML = `
+                            <div class="space-name">${spaceData.name}</div>
+                            ${spaceData.price ? `<div class="space-price">$${spaceData.price}</div>` : ''}
+                        `;
+                        board.appendChild(cell);
+                    } else if (r === 1 && c === 1) {
+                        // Big center logo spanning rows 2-5, cols 2-5 (CSS grid)
+                        const logo = document.createElement('div');
+                        logo.className = 'center-logo';
+                        logo.style.gridColumn = '2 / 6';
+                        logo.style.gridRow = '2 / 6';
+                        logo.innerHTML = '🎲<br>PROGRAMMING<br>MONOPOLY';
+                        board.appendChild(logo);
+                    } else if (isInner) {
+                        // Skip inner cells (covered by center-logo span)
+                    } else {
+                        // Shouldn't happen, but add empty transparent cell
+                        const empty = document.createElement('div');
+                        empty.className = 'center-cell';
+                        board.appendChild(empty);
+                    }
+                }
+            }
+        }
+
+        function createPlayerTokens() {
+            gameState.players.forEach((player, index) => {
+                const token = document.createElement('div');
+                token.className = `token`;
+                token.id = `token${index + 1}`;
+                token.textContent = index + 1;
+                token.style.background = player.color;
+                positionToken(token, 0, index);
+                document.getElementById('board').appendChild(token);
+            });
+        }
+
+        function positionToken(token, spaceIndex, playerOffset) {
+            // Get the board cell at this space index
+            const board = document.getElementById('board');
+            const boardRect = board.getBoundingClientRect();
+            const [row, col] = perimeterPositions[spaceIndex];
+
+            const cellW = board.offsetWidth / 6;
+            const cellH = board.offsetHeight / 6;
+
+            const offX = (playerOffset % 2) * (cellW * 0.3) + cellW * 0.1;
+            const offY = Math.floor(playerOffset / 2) * (cellH * 0.3) + cellH * 0.1;
+
+            token.style.left = `${col * cellW + offX}px`;
+            token.style.top = `${row * cellH + offY}px`;
+        }
+
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('players-list');
+            playersList.innerHTML = '';
+            gameState.players.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player-info ${index === gameState.currentPlayer ? 'active' : ''}`;
+                playerDiv.innerHTML = `
+                    <span style="color:${index === gameState.currentPlayer ? 'white' : player.color}; font-weight:bold;">
+                        ${player.name}
+                    </span>
+                    <span>💰 $${player.money}${player.combo > 1 ? ` 🔥${player.combo}x` : ''}</span>
+                `;
+                playersList.appendChild(playerDiv);
+            });
+        }
+
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard-list');
+            const sortedPlayers = [...gameState.players].sort((a, b) => b.money - a.money);
+            leaderboard.innerHTML = sortedPlayers.map((player, index) =>
+                `<div style="padding: 4px 0; display: flex; justify-content: space-between; font-size:0.9rem;">
+                    <span>${index + 1}. ${player.name}</span>
+                    <span style="font-weight:bold;">$${player.money}</span>
+                </div>`
+            ).join('');
+        }
+
+        function rollDice() {
+            if (!gameState.gameActive) return;
+            playSound('dice');
+
+            const dice1 = document.getElementById('dice1');
+            const dice2 = document.getElementById('dice2');
+            const rollBtn = document.getElementById('rollBtn');
+
+            dice1.classList.add('rolling');
+            dice2.classList.add('rolling');
+            rollBtn.disabled = true;
+
+            setTimeout(() => {
+                const roll1 = Math.floor(Math.random() * 6) + 1;
+                const roll2 = Math.floor(Math.random() * 6) + 1;
+                const total = roll1 + roll2;
+
+                dice1.innerHTML = roll1;
+                dice2.innerHTML = roll2;
+                dice1.classList.remove('rolling');
+                dice2.classList.remove('rolling');
+
+                movePlayer(total);
+            }, 1000);
+        }
+
+        function movePlayer(spaces) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const token = document.getElementById(`token${gameState.currentPlayer + 1}`);
+
+            let newPosition = (currentPlayer.position + spaces) % boardSpaces.length;
+
+            if (currentPlayer.position + spaces >= boardSpaces.length) {
+                currentPlayer.money += 200;
+                showMoneyAnimation(token, '+$200', '#2ecc71');
+                playSound('money');
+            }
+
+            currentPlayer.position = newPosition;
+            token.classList.add('moving');
+            positionToken(token, newPosition, gameState.currentPlayer);
+
+            setTimeout(() => {
+                token.classList.remove('moving');
+                handleSpaceLanding(newPosition);
+            }, 600);
+        }
+
+        function handleSpaceLanding(spaceIndex) {
+            const space = boardSpaces[spaceIndex];
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+
+            switch (space.type) {
+                case 'property':
+                case 'special':
+                    showQuestion();
+                    break;
+                case 'chance':
+                    showEventCard();
+                    break;
+                case 'corner':
+                    if (space.reward) {
+                        currentPlayer.money += space.reward;
+                        const token = document.getElementById(`token${gameState.currentPlayer + 1}`);
+                        showMoneyAnimation(token, `+$${space.reward}`, '#2ecc71');
+                        playSound('money');
+                    }
+                    nextTurn();
+                    break;
+                default:
+                    nextTurn();
+            }
+        }
+
+        function showQuestion() {
+            const modal = document.getElementById('questionModal');
+            const questionText = document.getElementById('questionText');
+            const answersContainer = document.getElementById('answersContainer');
+
+            const question = questions[Math.floor(Math.random() * questions.length)];
+            questionText.textContent = question.question;
+            answersContainer.innerHTML = '';
+
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = answer;
+                button.onclick = () => handleAnswer(index === question.correct, modal);
+                answersContainer.appendChild(button);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function handleAnswer(isCorrect, modal) {
+            const currentPlayer = gameState.players[gameState.currentPlayer];
+            const token = document.getElementById(`token${gameState.currentPlayer + 1}`);
+
+            if (isCorrect) {
+                playSound('correct');
+                currentPlayer.combo++;
+                const reward = 100 + (currentPlayer.combo * 25);
+                currentPlayer.money += reward;
+                showMoneyAnimation(token, `+$${reward}`, '#2ecc71');
+                if (currentPlayer.combo > 1) {
+                    token.classList.add('combo-glow');
+                    setTimeout(() => token.classList.remove('combo-glow'), 1000);
+                }
+            } else {
+                playSound('wrong');
+                currentPlayer.combo = 0;
+                const penalty = 50;
+                currentPlayer.money = Math.max(0, currentPlayer.money - penalty);
+                showMoneyAnimation(token, `-$${penalty}`, '#e74c3c');
+            }
+
+            modal.style.display = 'none';
+            updatePlayersDisplay();
+            updateLeaderboard();
+            nextTurn();
+        }
+
+        function showEventCard() {
+            const modal = document.getElementById('cardModal');
+            const card = document.getElementById('eventCard');
+            const okBtn = document.getElementById('cardOkBtn');
+            card.classList.remove('flipped');
+            card.innerHTML = '<div>🎴 Click to flip card!</div>';
+            okBtn.style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function flipCard() {
+            const card = document.getElementById('eventCard');
+            const okBtn = document.getElementById('cardOkBtn');
+            if (card.classList.contains('flipped')) return;
+            card.classList.add('flipped');
+
+            setTimeout(() => {
+                const eventCard = eventCards[Math.floor(Math.random() * eventCards.length)];
+                const currentPlayer = gameState.players[gameState.currentPlayer];
+                card.innerHTML = `<div>${eventCard.text}</div><div style="font-size:1.3rem; margin-top:8px;">${eventCard.effect > 0 ? '+' : ''}$${eventCard.effect}</div>`;
+                currentPlayer.money = Math.max(0, currentPlayer.money + eventCard.effect);
+
+                const token = document.getElementById(`token${gameState.currentPlayer + 1}`);
+                const sign = eventCard.effect > 0 ? '+' : '';
+                const color = eventCard.effect > 0 ? '#2ecc71' : '#e74c3c';
+                showMoneyAnimation(token, `${sign}$${eventCard.effect}`, color);
+
+                playSound(eventCard.effect > 0 ? 'money' : 'wrong');
+                updatePlayersDisplay();
+                updateLeaderboard();
+                okBtn.style.display = 'block';
+            }, 300);
+        }
+
+        function closeCardModal() {
+            document.getElementById('cardModal').style.display = 'none';
+            nextTurn();
+        }
+
+        function showMoneyAnimation(element, text, color) {
+            const animation = document.createElement('div');
+            animation.className = 'money-animation';
+            animation.textContent = text;
+            animation.style.color = color;
+            animation.style.left = element.style.left;
+            animation.style.top = element.style.top;
+            document.getElementById('board').appendChild(animation);
+            setTimeout(() => animation.remove(), 2000);
+        }
+
+        function nextTurn() {
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+
+            if (gameState.currentPlayer === 0) {
+                gameState.round++;
+                document.getElementById('round').textContent = gameState.round;
+                if (gameState.round > gameState.maxRounds) {
+                    endGame();
+                    return;
+                }
+            }
+
+            updatePlayersDisplay();
+            document.getElementById('rollBtn').disabled = false;
+        }
+
+        let timerInterval;
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameState.gameActive) { clearInterval(timerInterval); return; }
+                gameState.timeLeft--;
+                const minutes = Math.floor(gameState.timeLeft / 60);
+                const seconds = gameState.timeLeft % 60;
+                document.getElementById('timer').textContent =
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameState.gameActive = false;
+            document.getElementById('rollBtn').disabled = true;
+            const winner = gameState.players.reduce((prev, curr) =>
+                prev.money > curr.money ? prev : curr
+            );
+            alert(`🎉 Game Over!\n\n🏆 ${winner.name} wins with $${winner.money}!\n\nFinal Scores:\n${
+                [...gameState.players]
+                    .sort((a,b) => b.money - a.money)
+                    .map((p, i) => `${i+1}. ${p.name}: $${p.money}`)
+                    .join('\n')
+            }`);
+        }
+
+        function restartGame() {
+            if (timerInterval) clearInterval(timerInterval);
+            gameState = {
+                players: [
+                    { id: 1, name: 'Player 1', money: 1500, position: 0, combo: 0, color: '#e74c3c' },
+                    { id: 2, name: 'Player 2', money: 1500, position: 0, combo: 0, color: '#3498db' },
+                    { id: 3, name: 'Player 3', money: 1500, position: 0, combo: 0, color: '#2ecc71' },
+                    { id: 4, name: 'Player 4', money: 1500, position: 0, combo: 0, color: '#f39c12' }
+                ],
+                currentPlayer: 0,
+                round: 1,
+                maxRounds: 10,
+                timeLeft: 1800,
+                gameActive: true
+            };
+
+            document.getElementById('timer').textContent = '30:00';
+            document.getElementById('round').textContent = '1';
+            document.getElementById('dice1').innerHTML = '🎲';
+            document.getElementById('dice2').innerHTML = '🎲';
+            document.getElementById('rollBtn').disabled = false;
+            document.querySelectorAll('.token').forEach(t => t.remove());
+
+            initGame();
+        }
+
+        document.getElementById('rollBtn').addEventListener('click', rollDice);
+        window.addEventListener('load', initGame);
+
+        // Re-position tokens on resize
+        window.addEventListener('resize', () => {
+            if (!gameState.gameActive) return;
+            gameState.players.forEach((player, index) => {
+                const token = document.getElementById(`token${index + 1}`);
+                if (token) positionToken(token, player.position, index);
+            });
+        });
+    </script>
+</body>
+</html>
