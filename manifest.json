@@ -4,7 +4,7 @@
   "description": "Fun programming quiz games",
   "start_url": "/edugame-CP/index.html",
   "scope": "/edugame-CP/",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#1a1a2e",
   "theme_color": "#667eea",
