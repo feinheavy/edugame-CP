@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "io.github.feinheavy.twa",
-    "sha256_cert_fingerprints": ["DF:5F:53:FB:CE:17:B3:D5:8E:82:5C:3B:FC:11:E0:DD:24:2D:EC:02:C2:51:B2:C1:2D:D0:A1:44:A6:E4:79:36"]
-  }
-}]
