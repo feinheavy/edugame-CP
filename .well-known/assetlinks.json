@@ -1,8 +1,8 @@
 [{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "io.github.feinheavy.twa",
-    "sha256_cert_fingerprints": ["DF:5F:53:FB:CE:17:B3:D5:8E:82:5C:3B:FC:11:E0:DD:24:2D:EC:02:C2:51:B2:C1:2D:D0:A1:44:A6:E4:79:36"]
-  }
-}]
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.feinheavy.twa",
+        "sha256_cert_fingerprints": ["CA:E7:DA:8D:1C:28:92:A1:C7:38:38:37:C6:A9:EE:8B:3C:40:95:CE:B4:A2:55:60:01:FE:86:5E:24:66:7E:00"]
+      }
+    }]
