@@ -2,6 +2,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ProGames">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Programming Quiz Buzzer Battle</title>
@@ -19,77 +26,91 @@
         .pulse { animation: pulse 0.5s ease-in-out; }
         .shake { animation: shake 0.3s ease-in-out; }
         .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+
+        /* Prevent accidental double-tap zoom on mobile buttons */
+        button { touch-action: manipulation; }
+
+        /* Disabled answer buttons look clearly disabled */
+        .answer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen text-white font-sans">
-    <!-- Game Container -->
-    <div class="container mx-auto px-4 py-6">
+    <div class="container mx-auto px-4 py-6 max-w-3xl">
+
         <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold mb-2 text-yellow-300">🏆 Programming Quiz Buzzer Battle</h1>
-            <div class="text-lg text-gray-300">First to 10 points wins!</div>
-            <div class="text-sm text-gray-400 mt-2">Highest Score: <span id="highestScore" class="text-yellow-300 font-bold">0</span></div>
+        <div class="text-center mb-6 relative">
+            <!-- ✅ Home button top-left -->
+            <a href="index.html"
+               class="absolute left-0 top-0 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-1">
+                🏠 Home
+            </a>
+            <h1 class="text-3xl font-bold mb-1 text-yellow-300">🏆 Programming Quiz Buzzer Battle</h1>
+            <div class="text-base text-gray-300">First to 10 points wins!</div>
+            <div class="text-sm text-gray-400 mt-1">Highest Score: <span id="highestScore" class="text-yellow-300 font-bold">0</span></div>
         </div>
 
         <!-- Players Score -->
-        <div class="grid grid-cols-2 gap-8 mb-8">
-            <div id="player1Card" class="bg-red-600 rounded-lg p-6 text-center transform transition-all duration-300">
-                <h2 class="text-2xl font-bold mb-2">Player 1</h2>
-                <div class="text-sm mb-2">Q / Button</div>
+        <div class="grid grid-cols-2 gap-6 mb-6">
+            <div id="player1Card" class="bg-red-600 rounded-lg p-5 text-center transform transition-all duration-300">
+                <h2 class="text-xl font-bold mb-1">Player 1</h2>
+                <div class="text-sm mb-1 text-red-200">Q / Button</div>
                 <div class="text-4xl font-bold" id="player1Score">0</div>
-                <div class="text-sm mt-2">Combo: <span id="player1Combo" class="font-bold">0</span></div>
+                <div class="text-sm mt-1">Combo: <span id="player1Combo" class="font-bold">0</span></div>
             </div>
-            <div id="player2Card" class="bg-blue-600 rounded-lg p-6 text-center transform transition-all duration-300">
-                <h2 class="text-2xl font-bold mb-2">Player 2</h2>
-                <div class="text-sm mb-2">P /Button</div>
+            <div id="player2Card" class="bg-blue-600 rounded-lg p-5 text-center transform transition-all duration-300">
+                <h2 class="text-xl font-bold mb-1">Player 2</h2>
+                <div class="text-sm mb-1 text-blue-200">P / Button</div>
                 <div class="text-4xl font-bold" id="player2Score">0</div>
-                <div class="text-sm mt-2">Combo: <span id="player2Combo" class="font-bold">0</span></div>
+                <div class="text-sm mt-1">Combo: <span id="player2Combo" class="font-bold">0</span></div>
             </div>
         </div>
-        <!-- 🔽 ADDED FOR MOBILE / TABLET CONTROLS -->
-        <div class="grid grid-cols-3 gap-4 mb-8 md:hidden">
+
+        <!-- Mobile / Tablet Controls -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
             <button id="p1BuzzBtn"
-                class="bg-red-600 p-4 rounded-lg text-lg font-bold active:scale-95">
-                Player 1 Buzz
+                class="bg-red-600 hover:bg-red-700 active:scale-95 p-4 rounded-lg text-base font-bold transition-all duration-150">
+                🔴 Player 1<br>Buzz
             </button>
-
             <button id="startBtn"
-                class="bg-yellow-400 text-black p-4 rounded-lg text-lg font-bold active:scale-95">
-                Start / Next
+                class="bg-yellow-400 hover:bg-yellow-300 active:scale-95 text-black p-4 rounded-lg text-base font-bold transition-all duration-150">
+                ▶ Start /<br>Next
             </button>
-
             <button id="p2BuzzBtn"
-                class="bg-blue-600 p-4 rounded-lg text-lg font-bold active:scale-95">
-                Player 2 Buzz
+                class="bg-blue-600 hover:bg-blue-700 active:scale-95 p-4 rounded-lg text-base font-bold transition-all duration-150">
+                🔵 Player 2<br>Buzz
             </button>
         </div>
-<!-- 🔼 END MOBILE ADD -->
 
         <!-- Game Area -->
-        <div class="bg-gray-800 rounded-lg p-8 mb-6">
-            <!-- Countdown Display -->
-            <div id="countdownDisplay" class="text-center mb-6 hidden">
-                <div class="text-6xl font-bold text-yellow-300 mb-4" id="countdownNumber">3</div>
-                <div class="text-2xl">Get Ready!</div>
+        <div class="bg-gray-800 rounded-lg p-6 mb-5">
+
+            <!-- Countdown -->
+            <div id="countdownDisplay" class="text-center mb-5 hidden">
+                <div class="text-6xl font-bold text-yellow-300 mb-3" id="countdownNumber">3</div>
+                <div class="text-xl">Get Ready!</div>
             </div>
 
-            <!-- Question Display -->
-            <div id="questionArea" class="text-center mb-6">
-                <div class="text-2xl font-bold mb-4" id="questionText">Press SPACE to start the game!</div>
-                <div class="text-lg text-gray-300" id="questionHint" style="display: none;"></div>
+            <!-- Question -->
+            <div id="questionArea" class="text-center mb-5">
+                <div class="text-xl font-bold leading-snug" id="questionText">Press START or SPACE to begin!</div>
+                <div class="text-base text-yellow-200 mt-3 font-semibold hidden" id="questionHint"></div>
             </div>
 
-            <!-- Timer Display -->
-            <div id="timerDisplay" class="text-center mb-6 hidden">
-                <div class="text-xl mb-2">Time Remaining</div>
-                <div class="w-full bg-gray-700 rounded-full h-4 mb-2">
-                    <div id="timerBar" class="bg-green-500 h-4 rounded-full transition-all duration-1000" style="width: 100%"></div>
+            <!-- Timer -->
+            <div id="timerDisplay" class="text-center mb-5 hidden">
+                <div class="text-base mb-1">Time Remaining</div>
+                <div class="w-full bg-gray-700 rounded-full h-4 mb-1">
+                    <div id="timerBar" class="bg-green-500 h-4 rounded-full transition-all duration-1000" style="width:100%"></div>
                 </div>
                 <div class="text-lg font-bold" id="timerText">5</div>
             </div>
 
             <!-- Answer Options -->
-            <div id="answerOptions" class="grid grid-cols-2 gap-4 hidden">
+            <div id="answerOptions" class="grid grid-cols-2 gap-3 hidden">
                 <button class="answer-btn bg-green-600 hover:bg-green-700 p-4 rounded-lg text-left transition-all duration-200" data-answer="A">
                     <span class="font-bold">A)</span> <span class="answer-text"></span>
                 </button>
@@ -104,45 +125,45 @@
                 </button>
             </div>
 
-            <!-- Status Messages -->
-            <div id="statusMessage" class="text-center text-xl font-bold mt-6 hidden"></div>
+            <!-- Status -->
+            <div id="statusMessage" class="text-center text-lg font-bold mt-5 hidden"></div>
         </div>
 
-        <!-- Game Over Screen -->
+        <!-- Game Over -->
         <div id="gameOverScreen" class="bg-gray-800 rounded-lg p-8 text-center hidden">
             <h2 class="text-4xl font-bold mb-4 text-yellow-300">🎉 Game Over!</h2>
-            <div id="winnerMessage" class="text-2xl mb-6"></div>
-            <div id="finalScores" class="text-lg mb-6"></div>
-            <button id="playAgainBtn" class="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg text-xl font-bold transition-all duration-200">
-                Play Again
+            <div id="winnerMessage" class="text-2xl mb-5"></div>
+            <div id="finalScores" class="text-lg mb-5"></div>
+            <button id="playAgainBtn" class="bg-green-600 hover:bg-green-700 px-8 py-3 rounded-lg text-xl font-bold transition-all duration-200 mr-3">
+                🔄 Play Again
             </button>
+            <!-- ✅ Home button on game over screen -->
+            <a href="index.html" class="inline-block bg-gray-600 hover:bg-gray-500 px-8 py-3 rounded-lg text-xl font-bold transition-all duration-200">
+                🏠 Home
+            </a>
         </div>
 
         <!-- Instructions -->
-        <div class="text-center text-sm text-gray-400">
-            <div> Player 1: Q / Button | Player 2: P / Button | SPACE / Start Button
-</div>
+        <div class="text-center text-sm text-gray-400 mt-3">
+            Player 1: Q key or Red Button &nbsp;|&nbsp; Player 2: P key or Blue Button &nbsp;|&nbsp; SPACE / Start Button to begin
         </div>
     </div>
 
     <script>
-        // Game State
+        // ✅ Global flag: prevents any answer from being processed more than once per question turn
+        let answerLocked = false;
+
         let gameState = {
-            phase: 'waiting', // waiting, countdown, buzzing, answering, checking
+            phase: 'waiting', // waiting, countdown, buzzing, hinting, answering, checking, gameOver
             currentPlayer: null,
             scores: { player1: 0, player2: 0 },
             combos: { player1: 0, player2: 0 },
             currentQuestion: 0,
             lockedPlayers: new Set(),
-            timers: {
-                countdown: null,
-                buzz: null,
-                answer: null
-            }
+            timers: { countdown: null, buzz: null, answer: null }
         };
 
-        // Questions Database
-       const questions = [
+        const questions = [
             {
                 question: "Why use file in Python?",
                 options: [
@@ -255,111 +276,114 @@
             }
         ];
 
-
-        // Sound Effects (using Web Audio API)
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(frequency, duration, type = 'sine') {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            oscillator.type = type;
-            
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, dur, type = 'sine') {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.value = freq; osc.type = type;
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+                osc.start(); osc.stop(audioCtx.currentTime + dur);
+            } catch(e) {}
         }
+        function playBuzz()    { playTone(800, 0.3, 'square'); }
+        function playCorrect() { playTone(523, 0.3); setTimeout(() => playTone(784, 0.3), 150); }
+        function playWrong()   { playTone(200, 0.6, 'sawtooth'); }
+        function playWarn()    { playTone(1000, 0.2, 'square'); }
 
-        function playBuzzSound() { playSound(800, 0.3, 'square'); }
-        function playCorrectSound() { playSound(523, 0.5); playSound(659, 0.5, 'sine'); }
-        function playWrongSound() { playSound(200, 0.8, 'sawtooth'); }
-        function playWarningSound() { playSound(1000, 0.2, 'square'); }
-
-        // DOM Elements
-        const elements = {
-            countdownDisplay: document.getElementById('countdownDisplay'),
-            countdownNumber: document.getElementById('countdownNumber'),
-            questionArea: document.getElementById('questionArea'),
-            questionText: document.getElementById('questionText'),
-            questionHint: document.getElementById('questionHint'),
-            timerDisplay: document.getElementById('timerDisplay'),
-            timerBar: document.getElementById('timerBar'),
-            timerText: document.getElementById('timerText'),
-            answerOptions: document.getElementById('answerOptions'),
-            statusMessage: document.getElementById('statusMessage'),
-            gameOverScreen: document.getElementById('gameOverScreen'),
-            player1Card: document.getElementById('player1Card'),
-            player2Card: document.getElementById('player2Card'),
-            player1Score: document.getElementById('player1Score'),
-            player2Score: document.getElementById('player2Score'),
-            player1Combo: document.getElementById('player1Combo'),
-            player2Combo: document.getElementById('player2Combo'),
-            playAgainBtn: document.getElementById('playAgainBtn'),
-            winnerMessage: document.getElementById('winnerMessage'),
-            finalScores: document.getElementById('finalScores'),
-            highestScore: document.getElementById('highestScore')
+        // DOM shortcuts
+        const el = id => document.getElementById(id);
+        const els = {
+            countdown: el('countdownDisplay'),
+            countdownNum: el('countdownNumber'),
+            questionArea: el('questionArea'),
+            questionText: el('questionText'),
+            questionHint: el('questionHint'),
+            timerDisplay: el('timerDisplay'),
+            timerBar: el('timerBar'),
+            timerText: el('timerText'),
+            answerOptions: el('answerOptions'),
+            statusMsg: el('statusMessage'),
+            gameOver: el('gameOverScreen'),
+            p1Card: el('player1Card'),
+            p2Card: el('player2Card'),
+            p1Score: el('player1Score'),
+            p2Score: el('player2Score'),
+            p1Combo: el('player1Combo'),
+            p2Combo: el('player2Combo'),
+            playAgain: el('playAgainBtn'),
+            winnerMsg: el('winnerMessage'),
+            finalScores: el('finalScores'),
+            highScore: el('highestScore')
         };
 
-        // Clear all timers
         function clearAllTimers() {
-            Object.values(gameState.timers).forEach(timer => {
-                if (timer) clearInterval(timer);
-            });
+            Object.values(gameState.timers).forEach(t => t && clearInterval(t));
             gameState.timers = { countdown: null, buzz: null, answer: null };
         }
 
-        // Update UI
         function updateScores() {
-            elements.player1Score.textContent = gameState.scores.player1;
-            elements.player2Score.textContent = gameState.scores.player2;
-            elements.player1Combo.textContent = gameState.combos.player1;
-            elements.player2Combo.textContent = gameState.combos.player2;
+            els.p1Score.textContent = gameState.scores.player1;
+            els.p2Score.textContent = gameState.scores.player2;
+            els.p1Combo.textContent = gameState.combos.player1;
+            els.p2Combo.textContent = gameState.combos.player2;
         }
 
-        function showStatus(message, className = '') {
-            elements.statusMessage.textContent = message;
-            elements.statusMessage.className = `text-center text-xl font-bold mt-6 ${className}`;
-            elements.statusMessage.style.display = 'block';
-            setTimeout(() => {
-                elements.statusMessage.style.display = 'none';
-            }, 2000);
+        function showStatus(msg, cls = '') {
+            els.statusMsg.textContent = msg;
+            els.statusMsg.className = `text-center text-lg font-bold mt-5 ${cls}`;
+            els.statusMsg.style.display = 'block';
+        }
+
+        function hideStatus() {
+            els.statusMsg.style.display = 'none';
         }
 
         function highlightPlayer(player) {
-            elements.player1Card.classList.remove('glow', 'pulse');
-            elements.player2Card.classList.remove('glow', 'pulse');
-            
-            if (player === 'player1') {
-                elements.player1Card.classList.add('glow', 'pulse');
-            } else if (player === 'player2') {
-                elements.player2Card.classList.add('glow', 'pulse');
-            }
+            els.p1Card.classList.remove('glow', 'pulse');
+            els.p2Card.classList.remove('glow', 'pulse');
+            if (player === 'player1') els.p1Card.classList.add('glow', 'pulse');
+            if (player === 'player2') els.p2Card.classList.add('glow', 'pulse');
         }
 
-        // Game Phases
+        // ✅ Disable all answer buttons to prevent repeated clicks
+        function lockAnswerButtons() {
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        function unlockAnswerButtons() {
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+
+        // ─── GAME PHASES ───────────────────────────────────────────
+
         function startCountdown() {
+            if (gameState.phase !== 'waiting') return;
             gameState.phase = 'countdown';
             gameState.lockedPlayers.clear();
+            answerLocked = false;
             clearAllTimers();
-            
-            elements.countdownDisplay.style.display = 'block';
-            elements.timerDisplay.style.display = 'none';
-            elements.answerOptions.style.display = 'none';
-            elements.questionHint.style.display = 'none';
-            
+            hideStatus();
+
+            els.countdown.classList.remove('hidden');
+            els.timerDisplay.classList.add('hidden');
+            els.answerOptions.classList.add('hidden');
+            els.questionHint.classList.add('hidden');
+
             let count = 3;
-            elements.countdownNumber.textContent = count;
-            
+            els.countdownNum.textContent = count;
+
             gameState.timers.countdown = setInterval(() => {
                 count--;
                 if (count > 0) {
-                    elements.countdownNumber.textContent = count;
+                    els.countdownNum.textContent = count;
                 } else {
                     clearInterval(gameState.timers.countdown);
                     startBuzzPhase();
@@ -370,29 +394,28 @@
         function startBuzzPhase() {
             gameState.phase = 'buzzing';
             gameState.currentPlayer = null;
-            
-            elements.countdownDisplay.style.display = 'none';
-            elements.timerDisplay.style.display = 'block';
-            
-            // Display current question
-            const question = questions[gameState.currentQuestion];
-            elements.questionText.textContent = question.question;
-            
-            // Start buzz timer
+            answerLocked = false;
+
+            els.countdown.classList.add('hidden');
+            els.timerDisplay.classList.remove('hidden');
+            els.answerOptions.classList.add('hidden');
+            hideStatus();
+
+            const q = questions[gameState.currentQuestion];
+            els.questionText.textContent = q.question;
+
             let timeLeft = 5;
-            elements.timerText.textContent = timeLeft;
-            elements.timerBar.style.width = '100%';
-            elements.timerBar.className = 'bg-green-500 h-4 rounded-full transition-all duration-1000';
-            
+            els.timerText.textContent = timeLeft;
+            els.timerBar.style.width = '100%';
+            els.timerBar.className = 'bg-green-500 h-4 rounded-full transition-all duration-1000';
+
             gameState.timers.buzz = setInterval(() => {
                 timeLeft--;
-                elements.timerText.textContent = timeLeft;
-                elements.timerBar.style.width = `${(timeLeft / 5) * 100}%`;
-                
+                els.timerText.textContent = timeLeft;
+                els.timerBar.style.width = `${(timeLeft / 5) * 100}%`;
                 if (timeLeft <= 2) {
-                    elements.timerBar.className = 'bg-red-500 h-4 rounded-full transition-all duration-1000';
+                    els.timerBar.className = 'bg-red-500 h-4 rounded-full transition-all duration-1000';
                 }
-                
                 if (timeLeft <= 0) {
                     clearInterval(gameState.timers.buzz);
                     showHint();
@@ -400,69 +423,63 @@
             }, 1000);
         }
 
+        // ✅ FIXED: showHint locks phase to 'hinting' so no buzzing/answering can occur
         function showHint() {
-            const question = questions[gameState.currentQuestion];
-            elements.questionHint.textContent = `Hint: ${question.hint}`;
-            elements.questionHint.style.display = 'block';
-            showStatus('Time\'s up! Here\'s a hint...', 'text-yellow-300');
-            
+            gameState.phase = 'hinting'; // ← locked phase, no input accepted
+            clearAllTimers();
+            answerLocked = true;
+
+            const q = questions[gameState.currentQuestion];
+            els.questionHint.textContent = `💡 Hint: ${q.hint}`;
+            els.questionHint.classList.remove('hidden');
+            els.timerDisplay.classList.add('hidden');
+            els.answerOptions.classList.add('hidden');
+            showStatus("Time's up! Here's a hint…", 'text-yellow-300');
+
+            // Auto-advance after 3 seconds
             setTimeout(() => {
                 nextQuestion();
             }, 3000);
         }
 
         function playerBuzzed(player) {
-            if (gameState.phase !== 'buzzing' || gameState.lockedPlayers.has(player)) {
-                return;
-            }
-            
-            if (gameState.phase === 'countdown') {
-                // Early buzz - lock player
-                gameState.lockedPlayers.add(player);
-                playWarningSound();
-                showStatus(`${player === 'player1' ? 'Player 1' : 'Player 2'} buzzed too early!`, 'text-red-400');
-                elements[`${player}Card`].classList.add('shake');
-                setTimeout(() => elements[`${player}Card`].classList.remove('shake'), 300);
-                return;
-            }
-            
+            // ✅ Only allow buzz during 'buzzing' phase
+            if (gameState.phase !== 'buzzing') return;
+            if (gameState.lockedPlayers.has(player)) return;
+
             gameState.currentPlayer = player;
             gameState.phase = 'answering';
             clearAllTimers();
-            
-            playBuzzSound();
+            answerLocked = false;
+
+            playBuzz();
             highlightPlayer(player);
             showAnswerOptions();
         }
 
         function showAnswerOptions() {
-            const question = questions[gameState.currentQuestion];
-            elements.answerOptions.style.display = 'grid';
-            elements.timerDisplay.style.display = 'block';
-            
-            // Populate answer options
-            const answerButtons = document.querySelectorAll('.answer-btn');
-            answerButtons.forEach((btn, index) => {
-                const answerText = btn.querySelector('.answer-text');
-                answerText.textContent = question.options[index];
+            const q = questions[gameState.currentQuestion];
+            els.answerOptions.classList.remove('hidden');
+            els.timerDisplay.classList.remove('hidden');
+            unlockAnswerButtons(); // ensure fresh state
+
+            document.querySelectorAll('.answer-btn').forEach((btn, i) => {
+                btn.querySelector('.answer-text').textContent = q.options[i];
                 btn.onclick = () => checkAnswer(btn.dataset.answer);
             });
-            
-            // Start answer timer
+
             let timeLeft = 10;
-            elements.timerText.textContent = timeLeft;
-            elements.timerBar.style.width = '100%';
-            elements.timerBar.className = 'bg-blue-500 h-4 rounded-full transition-all duration-1000';
-            
+            els.timerText.textContent = timeLeft;
+            els.timerBar.style.width = '100%';
+            els.timerBar.className = 'bg-blue-500 h-4 rounded-full transition-all duration-1000';
+
             gameState.timers.answer = setInterval(() => {
                 timeLeft--;
-                elements.timerText.textContent = timeLeft;
-                elements.timerBar.style.width = `${(timeLeft / 10) * 100}%`;
-                
+                els.timerText.textContent = timeLeft;
+                els.timerBar.style.width = `${(timeLeft / 10) * 100}%`;
                 if (timeLeft <= 3) {
-                    elements.timerBar.className = 'bg-red-500 h-4 rounded-full transition-all duration-1000';
+                    els.timerBar.className = 'bg-red-500 h-4 rounded-full transition-all duration-1000';
                 }
-                
                 if (timeLeft <= 0) {
                     clearInterval(gameState.timers.answer);
                     timeUp();
@@ -471,59 +488,74 @@
         }
 
         function timeUp() {
-            showStatus('Time\'s up! Chance passes to other player.', 'text-yellow-300');
-            
-            // Pass chance to other player
-            const otherPlayer = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
-            gameState.currentPlayer = otherPlayer;
-            highlightPlayer(otherPlayer);
-            showAnswerOptions();
+            // ✅ Lock buttons immediately
+            lockAnswerButtons();
+            answerLocked = true;
+
+            showStatus("Time's up! Chance passes to other player.", 'text-yellow-300');
+            const other = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
+            gameState.currentPlayer = other;
+            highlightPlayer(other);
+            answerLocked = false;
+
+            setTimeout(() => {
+                unlockAnswerButtons();
+                showAnswerOptions();
+            }, 1500);
         }
 
-        function checkAnswer(selectedAnswer) {
+        // ✅ FIXED: checkAnswer uses answerLocked flag + immediately locks buttons
+        function checkAnswer(selected) {
+            // Guard: if already processing, ignore extra clicks entirely
+            if (answerLocked) return;
+            if (gameState.phase !== 'answering') return;
+
+            answerLocked = true;          // ← set FIRST before any async work
+            lockAnswerButtons();          // ← visually disable all buttons immediately
             clearAllTimers();
-            const question = questions[gameState.currentQuestion];
-            const isCorrect = selectedAnswer === question.correct;
-            
+
+            gameState.phase = 'checking';
+
+            const q = questions[gameState.currentQuestion];
+            const isCorrect = selected === q.correct;
+
             if (isCorrect) {
-                playCorrectSound();
-                
-                // Award points with combo bonus
-                const basePoints = 1;
-                const comboBonus = gameState.combos[gameState.currentPlayer];
-                const totalPoints = basePoints + comboBonus;
-                
-                gameState.scores[gameState.currentPlayer] += totalPoints;
+                playCorrect();
                 gameState.combos[gameState.currentPlayer]++;
-                
-                // Reset other player's combo
-                const otherPlayer = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
-                gameState.combos[otherPlayer] = 0;
-                
-                showStatus(`Correct! +${totalPoints} points (${comboBonus} combo bonus)`, 'text-green-400');
-                
+                const bonus = gameState.combos[gameState.currentPlayer] - 1; // combo bonus starts from 2nd streak
+                const pts = 1 + bonus;
+                gameState.scores[gameState.currentPlayer] += pts;
+
+                const other = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
+                gameState.combos[other] = 0;
+
+                showStatus(`✅ Correct! +${pts} point${pts > 1 ? 's' : ''}${bonus > 0 ? ` (${bonus} combo bonus!)` : ''}`, 'text-green-400');
                 updateScores();
-                
-                // Check for winner
+
                 if (gameState.scores[gameState.currentPlayer] >= 10) {
-                    endGame();
+                    setTimeout(endGame, 1800);
                     return;
                 }
-                
-                setTimeout(() => nextQuestion(), 2000);
-                
+
+                setTimeout(nextQuestion, 2000);
+
             } else {
-                playWrongSound();
+                playWrong();
                 gameState.combos[gameState.currentPlayer] = 0;
-                
-                showStatus('Wrong answer! Chance passes to other player.', 'text-red-400');
-                
-                // Pass to other player
-                const otherPlayer = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
-                gameState.currentPlayer = otherPlayer;
-                highlightPlayer(otherPlayer);
-                
-                setTimeout(() => showAnswerOptions(), 2000);
+                updateScores();
+
+                showStatus('❌ Wrong! Chance passes to other player.', 'text-red-400');
+
+                const other = gameState.currentPlayer === 'player1' ? 'player2' : 'player1';
+                gameState.currentPlayer = other;
+                highlightPlayer(other);
+
+                setTimeout(() => {
+                    gameState.phase = 'answering';
+                    answerLocked = false;
+                    unlockAnswerButtons();
+                    showAnswerOptions();
+                }, 2000);
             }
         }
 
@@ -531,40 +563,47 @@
             gameState.currentQuestion = (gameState.currentQuestion + 1) % questions.length;
             gameState.phase = 'waiting';
             gameState.currentPlayer = null;
-            
+            answerLocked = false;
+
             clearAllTimers();
             highlightPlayer(null);
-            
-            elements.answerOptions.style.display = 'none';
-            elements.timerDisplay.style.display = 'none';
-            elements.questionHint.style.display = 'none';
-            elements.questionText.textContent = 'Press SPACE for next question!';
+            lockAnswerButtons(); // keep locked until next buzz
+
+            els.answerOptions.classList.add('hidden');
+            els.timerDisplay.classList.add('hidden');
+            els.questionHint.classList.add('hidden');
+            els.questionText.textContent = 'Press START or SPACE for next question!';
+            hideStatus();
         }
 
         function endGame() {
             gameState.phase = 'gameOver';
             clearAllTimers();
-            
-            const winner = gameState.scores.player1 > gameState.scores.player2 ? 'Player 1' : 'Player 2';
-            const winnerScore = Math.max(gameState.scores.player1, gameState.scores.player2);
-            
-            // Update highest score
-            const currentHighest = parseInt(elements.highestScore.textContent);
-            if (winnerScore > currentHighest) {
-                elements.highestScore.textContent = winnerScore;
-                localStorage.setItem('highestScore', winnerScore);
+            answerLocked = true;
+
+            const p1 = gameState.scores.player1;
+            const p2 = gameState.scores.player2;
+            const winner = p1 > p2 ? 'Player 1 🔴' : p2 > p1 ? 'Player 2 🔵' : 'It\'s a Tie';
+            const best = Math.max(p1, p2);
+
+            const saved = parseInt(localStorage.getItem('buzzerHighScore') || 0);
+            if (best > saved) {
+                localStorage.setItem('buzzerHighScore', best);
+                els.highScore.textContent = best;
             }
-            
-            elements.winnerMessage.textContent = `${winner} Wins!`;
-            elements.finalScores.textContent = `Final Score - Player 1: ${gameState.scores.player1} | Player 2: ${gameState.scores.player2}`;
-            
-            elements.gameOverScreen.style.display = 'block';
-            elements.questionArea.style.display = 'none';
-            elements.timerDisplay.style.display = 'none';
-            elements.answerOptions.style.display = 'none';
+
+            els.winnerMsg.textContent = `${winner} Wins! 🏆`;
+            els.finalScores.innerHTML = `Player 1: <strong>${p1}</strong> pts &nbsp;|&nbsp; Player 2: <strong>${p2}</strong> pts`;
+
+            els.gameOver.classList.remove('hidden');
+            els.questionArea.classList.add('hidden');
+            els.timerDisplay.classList.add('hidden');
+            els.answerOptions.classList.add('hidden');
         }
 
         function resetGame() {
+            clearAllTimers();
+            answerLocked = false;
             gameState = {
                 phase: 'waiting',
                 currentPlayer: null,
@@ -574,27 +613,28 @@
                 lockedPlayers: new Set(),
                 timers: { countdown: null, buzz: null, answer: null }
             };
-            
-            clearAllTimers();
+
             highlightPlayer(null);
             updateScores();
-            
-            elements.gameOverScreen.style.display = 'none';
-            elements.questionArea.style.display = 'block';
-            elements.questionText.textContent = 'Press SPACE to start the game!';
-            elements.answerOptions.style.display = 'none';
-            elements.timerDisplay.style.display = 'none';
-            elements.countdownDisplay.style.display = 'none';
-            elements.questionHint.style.display = 'none';
+            hideStatus();
+
+            els.gameOver.classList.add('hidden');
+            els.questionArea.classList.remove('hidden');
+            els.questionText.textContent = 'Press START or SPACE to begin!';
+            els.questionHint.classList.add('hidden');
+            els.answerOptions.classList.add('hidden');
+            els.timerDisplay.classList.add('hidden');
+            els.countdown.classList.add('hidden');
+            lockAnswerButtons();
         }
 
-        // Event Listeners
-        document.addEventListener('keydown', (e) => {
+        // ─── EVENT LISTENERS ───────────────────────────────────────
+
+        document.addEventListener('keydown', e => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             if (e.code === 'Space') {
                 e.preventDefault();
-                if (gameState.phase === 'waiting') {
-                    startCountdown();
-                }
+                if (gameState.phase === 'waiting') startCountdown();
             } else if (e.code === 'KeyQ') {
                 e.preventDefault();
                 playerBuzzed('player1');
@@ -604,35 +644,37 @@
             }
         });
 
-        /* 🔽 ADDED FOR MOBILE / TABLET */
-        document.getElementById('startBtn')?.addEventListener('click', () => {
-            if (gameState.phase === 'waiting') {
-                startCountdown();
-            }
+        el('startBtn').addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (gameState.phase === 'waiting') startCountdown();
         });
 
-        document.getElementById('p1BuzzBtn')?.addEventListener('click', () => {
+        el('p1BuzzBtn').addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             playerBuzzed('player1');
         });
 
-        document.getElementById('p2BuzzBtn')?.addEventListener('click', () => {
+        el('p2BuzzBtn').addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             playerBuzzed('player2');
         });
-        /* 🔼 END MOBILE ADD */
 
+        els.playAgain.addEventListener('click', resetGame);
 
-        elements.playAgainBtn.addEventListener('click', resetGame);
-
-        // Initialize
-        const savedHighScore = localStorage.getItem('highestScore');
-        if (savedHighScore) {
-            elements.highestScore.textContent = savedHighScore;
-        }
-        
+        // Init
+        const saved = localStorage.getItem('buzzerHighScore');
+        if (saved) els.highScore.textContent = saved;
         updateScores();
+        lockAnswerButtons(); // start with buttons locked
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'980eb9b1127bc0c2',t:'MTc1ODE3NjMwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function() {
+          navigator.serviceWorker.register("sw.js")
+            .then(function(reg) { console.log("SW registered"); })
+            .catch(function(err) { console.log("SW error:", err); });
+        });
+      }
+    </script>
+</body>
 </html>
-
-
-
